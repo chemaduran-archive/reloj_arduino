@@ -4,11 +4,15 @@
  *  
  */
 
+#include <elapsedMillis.h>
+elapsedMillis sinceTest1;
+
 // Date and time functions using a DS1307 RTC connected via I2C and Wire lib
 #include <Wire.h>
 #include "RTClib.h"
 DS1307 rtc;
-
+int tempPin = 2;
+bool separator = false;
 #include "SevSeg.h"
 SevSeg sevseg; //Instantiate a seven segment controller object
 
@@ -32,15 +36,30 @@ void setup() {
   
   sevseg.begin(hardwareConfig, numDigits, digitPins, segmentPins, resistorsOnSegments, updateWithDelays, leadingZeros);
   sevseg.setBrightness(90);
+
+  // for temperature
+  pinMode(tempPin, INPUT);
+
+  Serial.begin(9600);
 }
 
 void loop() {
 
   DateTime now = rtc.now();
 
-  int _hour = now.hour() * 100 + now.minute();
+  int temp = digitalRead(tempPin); 
   
-  sevseg.setNumber(_hour, 2);
+  int _hour = now.hour() * 100 + now.minute();
+
+  if (sinceTest1 >= 1000)  {
+    sinceTest1 = sinceTest1 - 1000;
+    separator = !separator;
+    //Serial.println("Test1 (1000 msec)");
+    }
+  if (separator) 
+    sevseg.setNumber(_hour, 4);
+  else
+    sevseg.setNumber(_hour, 2);
 
   sevseg.refreshDisplay(); // Must run repeatedly
 }
