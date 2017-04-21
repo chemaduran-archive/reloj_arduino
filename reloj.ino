@@ -21,10 +21,11 @@ void setup() {
   Wire.begin();
   rtc.begin();
 
-  if (! rtc.isrunning()) {
+  //if (! rtc.isrunning()) {
     // following line sets the RTC to the date & time this sketch was compiled
+    //rtc.adjust(DateTime(__DATE__, __TIME__));
     rtc.adjust(DateTime(__DATE__, __TIME__));
-  }
+  //}
   
   byte numDigits = 4;
   byte digitPins[] = {11, 10, 9, 6};
@@ -35,33 +36,39 @@ void setup() {
   bool leadingZeros = false; // Use 'true' if you'd like to keep the leading zeros
   
   sevseg.begin(hardwareConfig, numDigits, digitPins, segmentPins, resistorsOnSegments, updateWithDelays, leadingZeros);
-  sevseg.setBrightness(90);
+  sevseg.setBrightness(0);
 
   // for temperature
   pinMode(tempPin, INPUT);
-
-  Serial.begin(9600);
 }
 
 void loop() {
 
   DateTime now = rtc.now();
 
-  int temp = digitalRead(tempPin); 
-  
-  int _hour = now.hour() * 100 + now.minute();
+  int hour_to_disp = 0;
+  int hour = now.hour();
+  int min = now.minute();
+
+  if (hour < 10)
+      hour = hour * 1000;
+  else
+      hour = hour * 100;
+    
+  hour_to_disp = hour + min;
 
   if (sinceTest1 >= 1000)  {
     sinceTest1 = sinceTest1 - 1000;
     separator = !separator;
-    //Serial.println("Test1 (1000 msec)");
     }
+    
   if (separator) 
-    sevseg.setNumber(_hour, 4);
+    sevseg.setNumber(hour_to_disp, -1);
   else
-    sevseg.setNumber(_hour, 2);
+    sevseg.setNumber(hour_to_disp, 2);
 
   sevseg.refreshDisplay(); // Must run repeatedly
 }
 
 /// END ///
+
